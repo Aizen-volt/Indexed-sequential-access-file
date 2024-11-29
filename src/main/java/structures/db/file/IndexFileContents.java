@@ -2,6 +2,9 @@ package main.java.structures.db.file;
 
 import lombok.Getter;
 import lombok.Setter;
+import main.java.structures.db.utils.SerializationUtils;
+
+import java.util.Arrays;
 
 @Setter
 @Getter
@@ -20,21 +23,14 @@ class IndexFileContents {
     }
 
     public byte[] serialize() {
-        return new byte[]{
-                (byte) (key >>> 24),
-                (byte) (key >>> 16),
-                (byte) (key >>> 8),
-                (byte) key,
-                (byte) (pageNumber >>> 24),
-                (byte) (pageNumber >>> 16),
-                (byte) (pageNumber >>> 8),
-                (byte) pageNumber
-        };
+        byte[] keyBytes = SerializationUtils.serialize(key);
+        byte[] pageNumberBytes = SerializationUtils.serialize(pageNumber);
+        return SerializationUtils.concat(keyBytes, pageNumberBytes);
     }
 
     public static IndexFileContents deserialize(byte[] bytes) {
-        int key = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-        int pageNumber = (bytes[4] << 24) | (bytes[5] << 16) | (bytes[6] << 8) | bytes[7];
+        int key = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, 0, Integer.BYTES), Integer.class);
+        int pageNumber = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES, Integer.BYTES * 2), Integer.class);
         return new IndexFileContents(key, pageNumber);
     }
 }

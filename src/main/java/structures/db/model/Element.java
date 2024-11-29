@@ -1,5 +1,8 @@
 package main.java.structures.db.model;
 
+import main.java.structures.db.utils.SerializationUtils;
+
+import java.util.Arrays;
 import java.util.Random;
 
 public record Element(int key, int a, int b, int c) implements Comparable<Element> {
@@ -17,31 +20,18 @@ public record Element(int key, int a, int b, int c) implements Comparable<Elemen
     }
 
     public byte[] serialize() {
-        return new byte[]{
-                (byte) (key >>> 24),
-                (byte) (key >>> 16),
-                (byte) (key >>> 8),
-                (byte) key,
-                (byte) (a >>> 24),
-                (byte) (a >>> 16),
-                (byte) (a >>> 8),
-                (byte) a,
-                (byte) (b >>> 24),
-                (byte) (b >>> 16),
-                (byte) (b >>> 8),
-                (byte) b,
-                (byte) (c >>> 24),
-                (byte) (c >>> 16),
-                (byte) (c >>> 8),
-                (byte) c
-        };
+        byte[] keyBytes = SerializationUtils.serialize(key);
+        byte[] aBytes = SerializationUtils.serialize(a);
+        byte[] bBytes = SerializationUtils.serialize(b);
+        byte[] cBytes = SerializationUtils.serialize(c);
+        return SerializationUtils.concat(keyBytes, aBytes, bBytes, cBytes);
     }
 
     public static Element deserialize(byte[] bytes) {
-        int key = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-        int a = (bytes[4] << 24) | (bytes[5] << 16) | (bytes[6] << 8) | bytes[7];
-        int b = (bytes[8] << 24) | (bytes[9] << 16) | (bytes[10] << 8) | bytes[11];
-        int c = (bytes[12] << 24) | (bytes[13] << 16) | (bytes[14] << 8) | bytes[15];
+        int key = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, 0, Integer.BYTES), Integer.class);
+        int a = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES, Integer.BYTES * 2), Integer.class);
+        int b = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES * 2, Integer.BYTES * 3), Integer.class);
+        int c = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES * 3, Integer.BYTES * 4), Integer.class);
         return new Element(key, a, b, c);
     }
 
