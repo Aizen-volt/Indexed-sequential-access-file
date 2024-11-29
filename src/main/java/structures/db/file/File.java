@@ -9,13 +9,13 @@ import java.io.RandomAccessFile;
 abstract class File<T> implements AutoCloseable {
     protected static final int PAGE_SIZE = AppConfig.getInstance().getPageSize();
 
-    protected final RandomAccessFile file;
+    protected final RandomAccessFile raFile;
     protected final Page<T> buffer;
     protected int currentPageIndex = -1;
     protected PageMode currentMode = PageMode.READ;
 
     protected File(String path) throws FileNotFoundException {
-        file = new RandomAccessFile(path, "rw");
+        raFile = new RandomAccessFile(path, "rw");
         buffer = new Page<>();
     }
 
@@ -28,6 +28,6 @@ abstract class File<T> implements AutoCloseable {
         if (!buffer.isEmpty()) {
             writePage(currentPageIndex);
         }
-        file.close();
+        raFile.close();
     }
 }

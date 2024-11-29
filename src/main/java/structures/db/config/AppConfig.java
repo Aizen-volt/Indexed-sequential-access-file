@@ -6,13 +6,11 @@ import main.java.structures.db.model.Element;
 import java.io.InputStream;
 import java.util.Properties;
 
+@Getter
 public class AppConfig {
     private static final String DEFAULT_PAGE_BLOCK_FACTOR = "128";
 
-    @Getter
     private final int pageBlockFactor;
-
-    @Getter
     private final int pageSize;
 
     private AppConfig() {

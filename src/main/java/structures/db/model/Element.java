@@ -1,8 +1,5 @@
 package main.java.structures.db.model;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.util.Random;
 
 public record Element(int key, int a, int b, int c) implements Comparable<Element> {

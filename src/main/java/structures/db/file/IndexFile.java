@@ -1,14 +1,13 @@
 package main.java.structures.db.file;
 
 import lombok.extern.java.Log;
-import main.java.structures.db.model.Element;
 
 import java.io.FileNotFoundException;
 
 @Log
-public class MainFile extends File<Element> {
+public class IndexFile extends File<IndexFileContents> {
 
-    public MainFile(String fileName) throws FileNotFoundException {
+    public IndexFile(String fileName) throws FileNotFoundException {
         super(fileName);
     }
 
@@ -18,7 +17,7 @@ public class MainFile extends File<Element> {
         }
         try {
             raFile.seek((long) pageNumber * PAGE_SIZE);
-            buffer.read(raFile, Element.getSize(), Element::deserialize);
+            buffer.read(raFile, IndexFileContents.getSize(), IndexFileContents::deserialize);
             currentPageIndex = pageNumber;
         } catch (Exception e) {
             log.severe("Error reading page " + pageNumber + ": " + e.getMessage());
@@ -28,7 +27,7 @@ public class MainFile extends File<Element> {
     protected void writePage(int pageNumber) {
         try {
             raFile.seek((long) pageNumber * PAGE_SIZE);
-            buffer.write(raFile, Element::serialize);
+            buffer.write(raFile, IndexFileContents::serialize);
         } catch (Exception e) {
             log.severe("Error writing page " + pageNumber + ": " + e.getMessage());
         }

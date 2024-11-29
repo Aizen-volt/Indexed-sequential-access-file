@@ -3,14 +3,12 @@ package main.java.structures.db.file;
 import lombok.Getter;
 import lombok.Setter;
 
+@Setter
+@Getter
 class PageElementContents<T> {
 
-    @Getter
-    @Setter
     private T data;
 
-    @Getter
-    @Setter
     private boolean occupied;
 
     PageElementContents(T data, boolean occupied) {
