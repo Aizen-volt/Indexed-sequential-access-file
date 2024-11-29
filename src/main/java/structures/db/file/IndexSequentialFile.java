@@ -10,7 +10,7 @@ public class IndexSequentialFile {
     private final MainFile mainFile;
 
     public IndexSequentialFile() throws FileNotFoundException {
-        this.indexFile = new IndexFile(AppConfig.getInstance().getIndexFileName());
+        this.indexFile = new IndexFile(AppConfig.getInstance().getIndexFilePath());
         this.mainFile = new MainFile(AppConfig.getInstance().getMainFileName());
     }
 

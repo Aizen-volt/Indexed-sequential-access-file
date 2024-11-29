@@ -26,7 +26,10 @@ abstract class File<T> implements AutoCloseable {
     public void displayWholeFile() {
         try {
             int pages = (int) Math.ceil((double) raFile.length() / PAGE_SIZE);
-            IntStream.range(0, pages).forEach(this::readPage);
+            IntStream.range(0, pages).forEach(page -> {
+                readPage(page);
+                System.out.println(buffer);
+            });
         } catch (IOException e) {
             log.severe("Error reading file: " + e.getMessage());
         }

@@ -14,7 +14,7 @@ public class AppConfig {
     private static final String DEFAULT_PAGE_BLOCK_FACTOR = "128";
 
     private final String mainFileName;
-    private final String indexFileName;
+    private final String indexFilePath;
 
     private final int pageBlockFactor;
     private final int pageSize;
@@ -31,7 +31,7 @@ public class AppConfig {
 
             // Load properties
             mainFileName = properties.getProperty("main.file.name", DEFAULT_MAIN_FILE_PATH);
-            indexFileName = properties.getProperty("index.file.name", DEFAULT_INDEX_FILE_PATH);
+            indexFilePath = properties.getProperty("index.file.name", DEFAULT_INDEX_FILE_PATH);
 
             pageBlockFactor = Integer.parseInt(properties.getProperty("page.block.factor", DEFAULT_PAGE_BLOCK_FACTOR));
             pageSize = pageBlockFactor * Element.getSize();
