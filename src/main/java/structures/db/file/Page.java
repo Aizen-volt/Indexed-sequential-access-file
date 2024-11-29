@@ -78,4 +78,11 @@ class Page<T> {
             data.set(i, data.get(i).empty()));
     }
 
+    @Override
+    public String toString() {
+        return "Page{" +
+                "data=" + data +
+                '}';
+    }
+
 }

@@ -1,11 +1,14 @@
 package main.java.structures.db.file;
 
+import lombok.extern.java.Log;
 import main.java.structures.db.config.AppConfig;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.stream.IntStream;
 
+@Log
 abstract class File<T> implements AutoCloseable {
 
     protected static final int PAGE_SIZE = AppConfig.getInstance().getPageSize();
@@ -20,9 +23,18 @@ abstract class File<T> implements AutoCloseable {
         buffer = new Page<>();
     }
 
-    protected void readPage(int pageNumber) {}
+    public void displayWholeFile() {
+        try {
+            int pages = (int) Math.ceil((double) raFile.length() / PAGE_SIZE);
+            IntStream.range(0, pages).forEach(this::readPage);
+        } catch (IOException e) {
+            log.severe("Error reading file: " + e.getMessage());
+        }
+    }
 
-    protected void writePage(int pageNumber) {}
+    protected abstract void readPage(int pageNumber);
+
+    protected abstract void writePage(int pageNumber);
 
     @Override
     public void close() throws IOException {

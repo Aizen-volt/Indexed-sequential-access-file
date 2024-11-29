@@ -9,7 +9,12 @@ import java.util.Properties;
 @Getter
 public class AppConfig {
 
+    private static final String DEFAULT_MAIN_FILE_PATH = "main.db";
+    private static final String DEFAULT_INDEX_FILE_PATH = "index.db";
     private static final String DEFAULT_PAGE_BLOCK_FACTOR = "128";
+
+    private final String mainFileName;
+    private final String indexFileName;
 
     private final int pageBlockFactor;
     private final int pageSize;
@@ -25,6 +30,9 @@ public class AppConfig {
             properties.load(input);
 
             // Load properties
+            mainFileName = properties.getProperty("main.file.name", DEFAULT_MAIN_FILE_PATH);
+            indexFileName = properties.getProperty("index.file.name", DEFAULT_INDEX_FILE_PATH);
+
             pageBlockFactor = Integer.parseInt(properties.getProperty("page.block.factor", DEFAULT_PAGE_BLOCK_FACTOR));
             pageSize = pageBlockFactor * Element.getSize();
 

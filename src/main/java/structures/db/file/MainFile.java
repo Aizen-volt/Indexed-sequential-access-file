@@ -12,6 +12,7 @@ public class MainFile extends File<Element> {
         super(fileName);
     }
 
+    @Override
     protected void readPage(int pageNumber) {
         if (currentPageIndex != -1) {
             writePage(currentPageIndex);
@@ -21,10 +22,12 @@ public class MainFile extends File<Element> {
             buffer.read(raFile, Element.getSize(), Element::deserialize);
             currentPageIndex = pageNumber;
         } catch (Exception e) {
-            log.severe("Error reading page " + pageNumber + ": " + e.getMessage());
+            currentPageIndex = -1;
+            buffer.clear();
         }
     }
 
+    @Override
     protected void writePage(int pageNumber) {
         try {
             raFile.seek((long) pageNumber * PAGE_SIZE);

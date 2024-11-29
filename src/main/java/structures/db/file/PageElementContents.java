@@ -20,4 +20,9 @@ class PageElementContents<T> {
         return new PageElementContents<>(null, false);
     }
 
+    @Override
+    public String toString() {
+        return occupied ? data.toString() : "";
+    }
+
 }

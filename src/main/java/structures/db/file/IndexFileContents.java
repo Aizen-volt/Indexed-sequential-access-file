@@ -34,4 +34,9 @@ class IndexFileContents {
         return new IndexFileContents(key, pageNumber);
     }
 
+    @Override
+    public String toString() {
+        return String.format("IndexFileContents(%d: %d)", key, pageNumber);
+    }
+
 }

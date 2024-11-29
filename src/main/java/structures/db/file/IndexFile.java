@@ -11,6 +11,7 @@ public class IndexFile extends File<IndexFileContents> {
         super(fileName);
     }
 
+    @Override
     protected void readPage(int pageNumber) {
         if (currentPageIndex != -1) {
             writePage(currentPageIndex);
@@ -24,6 +25,7 @@ public class IndexFile extends File<IndexFileContents> {
         }
     }
 
+    @Override
     protected void writePage(int pageNumber) {
         try {
             raFile.seek((long) pageNumber * PAGE_SIZE);

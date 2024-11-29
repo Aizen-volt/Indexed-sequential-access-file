@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import main.java.structures.db.file.IndexSequentialFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
@@ -11,13 +12,18 @@ import java.util.Scanner;
 @Log
 public class Main {
 
-    private static final IndexSequentialFile indexSequentialFile = new IndexSequentialFile();
+    private static IndexSequentialFile indexSequentialFile;
 
     public static void main(String[] args) {
-        while (true) {
-            displayMenu();
-            int choice = Integer.parseInt(System.console().readLine());
-            menuOptions.get(choice).run();
+        try {
+            indexSequentialFile = new IndexSequentialFile();
+            while (true) {
+                displayMenu();
+                int choice = Integer.parseInt(System.console().readLine());
+                menuOptions.get(choice).run();
+            }
+        } catch (FileNotFoundException e) {
+            log.severe("Error opening file: " + e.getMessage());
         }
     }
 
