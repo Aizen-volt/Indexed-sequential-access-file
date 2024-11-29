@@ -1,6 +1,7 @@
 package main.java.structures.db.config;
 
 import lombok.Getter;
+import main.java.structures.db.model.Element;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -10,6 +11,9 @@ public class AppConfig {
 
     @Getter
     private final int pageBlockFactor;
+
+    @Getter
+    private final int pageSize;
 
     private AppConfig() {
         var properties = new Properties();
@@ -23,6 +27,7 @@ public class AppConfig {
 
             // Load properties
             pageBlockFactor = Integer.parseInt(properties.getProperty("page.block.factor", DEFAULT_PAGE_BLOCK_FACTOR));
+            pageSize = pageBlockFactor * Element.getSize();
 
         } catch (Exception e) {
             throw new NoConfigFileLoadedException("Failed to load application configuration");

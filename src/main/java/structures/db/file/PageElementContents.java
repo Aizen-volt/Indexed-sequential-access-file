@@ -3,7 +3,7 @@ package main.java.structures.db.file;
 import lombok.Getter;
 import lombok.Setter;
 
-public class PageElementContents<T> {
+class PageElementContents<T> {
 
     @Getter
     @Setter

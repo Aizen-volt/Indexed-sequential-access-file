@@ -2,22 +2,47 @@ package main.java.structures.db.file;
 
 import main.java.structures.db.config.AppConfig;
 
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
-public class Page<T> {
+class Page<T> {
+    private static final int PAGE_BLOCK_FACTOR = AppConfig.getInstance().getPageBlockFactor();
+
     private final List<PageElementContents<T>> data;
 
-    public Page() {
-        this.data = new ArrayList<>(AppConfig.getInstance().getPageBlockFactor());
+    Page() {
+        this.data = new ArrayList<>(PAGE_BLOCK_FACTOR);
     }
 
-    public Page(List<PageElementContents<T>> data) {
-        this.data = data;
+    void read(RandomAccessFile file, int elementSize, Function<byte[], T> deserializer) {
+        data.clear();
+        IntStream.range(0, PAGE_BLOCK_FACTOR).forEach(i -> {
+            try {
+                byte[] bytes = new byte[elementSize];
+                file.read(bytes);
+                if (bytes[0] != 0) {
+                    data.set(i, new PageElementContents<>(deserializer.apply(bytes), true));
+                }
+            } catch (Exception e) {
+                throw new PageAccessException("Error reading page: " + e.getMessage());
+            }
+        });
     }
 
-    public void set(int index, T element) {
+    void write(RandomAccessFile file, Function<T, byte[]> serializer) {
+        IntStream.range(0, PAGE_BLOCK_FACTOR).forEach(i -> {
+            try {
+                file.write(serializer.apply(data.get(i).getData()));
+            } catch (Exception e) {
+                throw new PageAccessException("Error writing to page: " + e.getMessage());
+            }
+        });
+    }
+
+    void set(int index, T element) {
         if (index >= AppConfig.getInstance().getPageBlockFactor() || index < 0) {
             throw new IndexOutOfBoundsException(String.format("Index %d out of bound!", index));
         }
@@ -29,7 +54,7 @@ public class Page<T> {
         ));
     }
 
-    public void remove(int index) {
+    void remove(int index) {
         if (index >= AppConfig.getInstance().getPageBlockFactor() || index < 0) {
             throw new IndexOutOfBoundsException(String.format("Index %d out of bound!", index));
         }
@@ -39,15 +64,15 @@ public class Page<T> {
         data.set(index, data.get(index).empty());
     }
 
-    public boolean isFull() {
+    boolean isFull() {
         return data.size() >= AppConfig.getInstance().getPageBlockFactor();
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return data.isEmpty();
     }
 
-    public void clear() {
+    void clear() {
         IntStream.range(0, data.size()).forEach(i ->
             data.set(i, data.get(i).empty()));
     }

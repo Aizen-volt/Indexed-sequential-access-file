@@ -19,18 +19,32 @@ public record Element(int key, int a, int b, int c) implements Comparable<Elemen
         );
     }
 
-    public void serialize(DataOutput out) throws IOException {
-        out.writeInt(key);
-        out.writeInt(a);
-        out.writeInt(b);
-        out.writeInt(c);
+    public byte[] serialize() {
+        return new byte[]{
+                (byte) (key >>> 24),
+                (byte) (key >>> 16),
+                (byte) (key >>> 8),
+                (byte) key,
+                (byte) (a >>> 24),
+                (byte) (a >>> 16),
+                (byte) (a >>> 8),
+                (byte) a,
+                (byte) (b >>> 24),
+                (byte) (b >>> 16),
+                (byte) (b >>> 8),
+                (byte) b,
+                (byte) (c >>> 24),
+                (byte) (c >>> 16),
+                (byte) (c >>> 8),
+                (byte) c
+        };
     }
 
-    public static Element deserialize(DataInput in) throws IOException {
-        int key = in.readInt();
-        int a = in.readInt();
-        int b = in.readInt();
-        int c = in.readInt();
+    public static Element deserialize(byte[] bytes) {
+        int key = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+        int a = (bytes[4] << 24) | (bytes[5] << 16) | (bytes[6] << 8) | bytes[7];
+        int b = (bytes[8] << 24) | (bytes[9] << 16) | (bytes[10] << 8) | bytes[11];
+        int c = (bytes[12] << 24) | (bytes[13] << 16) | (bytes[14] << 8) | bytes[15];
         return new Element(key, a, b, c);
     }
 
