@@ -19,4 +19,5 @@ class PageElementContents<T> {
     public PageElementContents<T> empty() {
         return new PageElementContents<>(null, false);
     }
+
 }

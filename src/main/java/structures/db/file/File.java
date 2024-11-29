@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 abstract class File<T> implements AutoCloseable {
+
     protected static final int PAGE_SIZE = AppConfig.getInstance().getPageSize();
 
     protected final RandomAccessFile raFile;
@@ -30,4 +31,5 @@ abstract class File<T> implements AutoCloseable {
         }
         raFile.close();
     }
+
 }

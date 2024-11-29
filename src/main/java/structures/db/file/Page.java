@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 class Page<T> {
+
     private static final int PAGE_BLOCK_FACTOR = AppConfig.getInstance().getPageBlockFactor();
 
     private final List<PageElementContents<T>> data;
@@ -76,4 +77,5 @@ class Page<T> {
         IntStream.range(0, data.size()).forEach(i ->
             data.set(i, data.get(i).empty()));
     }
+
 }

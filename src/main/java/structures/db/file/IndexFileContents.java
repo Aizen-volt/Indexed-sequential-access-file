@@ -33,4 +33,5 @@ class IndexFileContents {
         int pageNumber = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES, Integer.BYTES * 2), Integer.class);
         return new IndexFileContents(key, pageNumber);
     }
+
 }

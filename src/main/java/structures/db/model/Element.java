@@ -48,4 +48,5 @@ public record Element(int key, int a, int b, int c) implements Comparable<Elemen
     public String toString() {
         return String.format("Element(%d: {%d, %d, %d})", key, a, b, c);
     }
+
 }

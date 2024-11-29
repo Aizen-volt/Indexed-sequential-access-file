@@ -8,6 +8,7 @@ import java.util.Properties;
 
 @Getter
 public class AppConfig {
+
     private static final String DEFAULT_PAGE_BLOCK_FACTOR = "128";
 
     private final int pageBlockFactor;
@@ -39,4 +40,5 @@ public class AppConfig {
     public static AppConfig getInstance() {
         return InstanceHolder.instance;
     }
+
 }
