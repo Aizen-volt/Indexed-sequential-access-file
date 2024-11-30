@@ -11,13 +11,16 @@ class PageElementContents<T> {
 
     private boolean occupied;
 
-    PageElementContents(T data, boolean occupied) {
+    private int overflowPointer;
+
+    PageElementContents(T data, boolean occupied, int overflowPointer) {
         this.data = data;
         this.occupied = occupied;
+        this.overflowPointer = overflowPointer;
     }
 
     public PageElementContents<T> empty() {
-        return new PageElementContents<>(null, false);
+        return new PageElementContents<>(null, false, -1);
     }
 
     @Override

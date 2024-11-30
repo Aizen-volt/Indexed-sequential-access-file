@@ -14,7 +14,7 @@ public class MainFile extends File<Element> {
 
     @Override
     protected void readPage(int pageNumber) {
-        if (currentPageIndex != -1) {
+        if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
             writePage(currentPageIndex);
         }
         try {

@@ -1,5 +1,6 @@
 package main.java.structures.db.file;
 
+import lombok.Getter;
 import main.java.structures.db.config.AppConfig;
 
 import java.io.RandomAccessFile;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+@Getter
 class Page<T> {
 
     private static final int PAGE_BLOCK_FACTOR = AppConfig.getInstance().getPageBlockFactor();

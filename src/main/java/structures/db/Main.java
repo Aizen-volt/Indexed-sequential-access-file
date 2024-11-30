@@ -1,7 +1,7 @@
 package main.java.structures.db;
 
 import lombok.extern.java.Log;
-import main.java.structures.db.file.IndexSequentialFile;
+import main.java.structures.db.file.IndexedSequentialAccessFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,11 +12,11 @@ import java.util.Scanner;
 @Log
 public class Main {
 
-    private static IndexSequentialFile indexSequentialFile;
+    private static IndexedSequentialAccessFile indexedSequentialAccessFile;
 
     public static void main(String[] args) {
         try {
-            indexSequentialFile = new IndexSequentialFile();
+            indexedSequentialAccessFile = new IndexedSequentialAccessFile();
             while (true) {
                 displayMenu();
                 int choice = Integer.parseInt(System.console().readLine());
@@ -56,29 +56,37 @@ public class Main {
         int c = Integer.parseInt(System.console().readLine());
 
         System.out.println("Inserting record...");
-        indexSequentialFile.insertRecord(key, a, b, c);
+        try {
+            indexedSequentialAccessFile.insertRecord(key, a, b, c);
+        } catch (IOException e) {
+            log.warning("Error inserting record: " + e.getMessage());
+        }
     }
 
     private static void readRecord() {
         System.out.println("Enter key:");
         int key = Integer.parseInt(System.console().readLine());
         System.out.println("Reading record...");
-        indexSequentialFile.readRecord(key);
+        try {
+            indexedSequentialAccessFile.readRecord(key);
+        } catch (IOException e) {
+            log.warning("Error reading record: " + e.getMessage());
+        }
     }
 
     private static void displayAllRecords() {
         System.out.println("Displaying all records...");
-        indexSequentialFile.displayAllRecords();
+        indexedSequentialAccessFile.displayAllRecords();
     }
 
     private static void displayIndexFile() {
         System.out.println("Displaying index file...");
-        indexSequentialFile.displayIndexFile();
+        indexedSequentialAccessFile.displayIndexFile();
     }
 
     private static void reorganizeFile() {
         System.out.println("Reorganizing file...");
-        indexSequentialFile.reorganizeFile();
+        indexedSequentialAccessFile.reorganizeFile();
     }
 
     private static void deleteRecord() {
@@ -86,7 +94,11 @@ public class Main {
         int key = Integer.parseInt(System.console().readLine());
 
         System.out.println("Deleting record...");
-        indexSequentialFile.deleteRecord(key);
+        try {
+            indexedSequentialAccessFile.deleteRecord(key);
+        } catch (IOException e) {
+            log.warning("Error deleting record: " + e.getMessage());
+        }
     }
 
     private static void updateRecord() {
@@ -103,7 +115,11 @@ public class Main {
         int c = Integer.parseInt(System.console().readLine());
 
         System.out.println("Updating record...");
-        indexSequentialFile.updateRecord(key, a, b, c);
+        try {
+            indexedSequentialAccessFile.updateRecord(key, a, b, c);
+        } catch (IOException e) {
+            log.warning("Error updating record: " + e.getMessage());
+        }
     }
 
     private static void executeCommandsFromFile() {
@@ -132,7 +148,7 @@ public class Main {
                             int a = Integer.parseInt(tokens[2]);
                             int b = Integer.parseInt(tokens[3]);
                             int c = Integer.parseInt(tokens[4]);
-                            indexSequentialFile.insertRecord(key, a, b, c);
+                            indexedSequentialAccessFile.insertRecord(key, a, b, c);
                         } catch (Exception e) {
                             log.warning("Error inserting record: " + e.getMessage());
                         }
@@ -140,7 +156,7 @@ public class Main {
                     case "delete":
                         try {
                             int key = Integer.parseInt(tokens[1]);
-                            indexSequentialFile.deleteRecord(key);
+                            indexedSequentialAccessFile.deleteRecord(key);
                         } catch (Exception e) {
                             log.warning("Error deleting record: " + e.getMessage());
                         }
@@ -151,7 +167,7 @@ public class Main {
                             int a = Integer.parseInt(tokens[2]);
                             int b = Integer.parseInt(tokens[3]);
                             int c = Integer.parseInt(tokens[4]);
-                            indexSequentialFile.updateRecord(key, a, b, c);
+                            indexedSequentialAccessFile.updateRecord(key, a, b, c);
                         } catch (Exception e) {
                             log.warning("Error updating record: " + e.getMessage());
                         }
