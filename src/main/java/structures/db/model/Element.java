@@ -1,8 +1,7 @@
 package main.java.structures.db.model;
 
-import main.java.structures.db.utils.SerializationUtils;
 
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 public record Element(int key, int a, int b, int c) implements Comparable<Element> {
@@ -19,20 +18,26 @@ public record Element(int key, int a, int b, int c) implements Comparable<Elemen
         );
     }
 
-    public byte[] serialize() {
-        byte[] keyBytes = SerializationUtils.serialize(key);
-        byte[] aBytes = SerializationUtils.serialize(a);
-        byte[] bBytes = SerializationUtils.serialize(b);
-        byte[] cBytes = SerializationUtils.serialize(c);
-        return SerializationUtils.concat(keyBytes, aBytes, bBytes, cBytes);
+    public static byte[] serialize(Element instance) {
+        if (instance == null) {
+            return Element.serialize(new Element(-1, -1, -1, -1));
+        }
+        return ByteBuffer.allocate(Element.getSize())
+                .putInt(instance.key)
+                .putInt(instance.a)
+                .putInt(instance.b)
+                .putInt(instance.c)
+                .array();
     }
 
     public static Element deserialize(byte[] bytes) {
-        int key = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, 0, Integer.BYTES), Integer.class);
-        int a = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES, Integer.BYTES * 2), Integer.class);
-        int b = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES * 2, Integer.BYTES * 3), Integer.class);
-        int c = SerializationUtils.deserialize(Arrays.copyOfRange(bytes, Integer.BYTES * 3, Integer.BYTES * 4), Integer.class);
-        return new Element(key, a, b, c);
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        return new Element(
+                buffer.getInt(),
+                buffer.getInt(),
+                buffer.getInt(),
+                buffer.getInt()
+        );
     }
 
     public static int getSize() {

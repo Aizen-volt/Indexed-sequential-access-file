@@ -13,16 +13,17 @@ import java.util.Scanner;
 public class Main {
 
     private static IndexedSequentialAccessFile indexedSequentialAccessFile;
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         try {
             indexedSequentialAccessFile = new IndexedSequentialAccessFile();
             while (true) {
                 displayMenu();
-                int choice = Integer.parseInt(System.console().readLine());
+                int choice = Integer.parseInt(scanner.nextLine());
                 menuOptions.get(choice).run();
             }
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             log.severe("Error opening file: " + e.getMessage());
         }
     }
@@ -44,16 +45,16 @@ public class Main {
 
     private static void insertRecord() {
         System.out.println("Enter key:");
-        int key = Integer.parseInt(System.console().readLine());
+        int key = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Enter a:");
-        int a = Integer.parseInt(System.console().readLine());
+        int a = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Enter b:");
-        int b = Integer.parseInt(System.console().readLine());
+        int b = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Enter c:");
-        int c = Integer.parseInt(System.console().readLine());
+        int c = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Inserting record...");
         try {
@@ -65,7 +66,7 @@ public class Main {
 
     private static void readRecord() {
         System.out.println("Enter key:");
-        int key = Integer.parseInt(System.console().readLine());
+        int key = Integer.parseInt(scanner.nextLine());
         System.out.println("Reading record...");
         try {
             indexedSequentialAccessFile.readRecord(key);
@@ -91,7 +92,7 @@ public class Main {
 
     private static void deleteRecord() {
         System.out.println("Enter key:");
-        int key = Integer.parseInt(System.console().readLine());
+        int key = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Deleting record...");
         try {
@@ -103,16 +104,16 @@ public class Main {
 
     private static void updateRecord() {
         System.out.println("Enter key:");
-        int key = Integer.parseInt(System.console().readLine());
+        int key = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Enter a:");
-        int a = Integer.parseInt(System.console().readLine());
+        int a = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Enter b:");
-        int b = Integer.parseInt(System.console().readLine());
+        int b = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Enter c:");
-        int c = Integer.parseInt(System.console().readLine());
+        int c = Integer.parseInt(scanner.nextLine());
 
         System.out.println("Updating record...");
         try {
@@ -124,7 +125,7 @@ public class Main {
 
     private static void executeCommandsFromFile() {
         System.out.println("Enter file name:");
-        String fileName = System.console().readLine();
+        String fileName = scanner.nextLine();
 
         System.out.println("Executing commands from file...");
         parseCommandsFromFile(fileName);
@@ -136,9 +137,9 @@ public class Main {
     }
 
     private static void parseCommandsFromFile(String fileName) {
-        try (Scanner scanner = new Scanner(new File(fileName))) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
+        try (Scanner fileScanner = new Scanner(new File(fileName))) {
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
                 String[] tokens = line.split(" ");
                 String command = tokens[0];
                 switch (command) {
@@ -182,15 +183,15 @@ public class Main {
     }
 
     private static final Map<Integer, Runnable> menuOptions = Map.of(
-        1, Main::insertRecord,
-        2, Main::readRecord,
-        3, Main::displayAllRecords,
-        4, Main::displayIndexFile,
-        5, Main::reorganizeFile,
-        6, Main::deleteRecord,
-        7, Main::updateRecord,
-        8, Main::executeCommandsFromFile,
-        9, Main::exit
+            1, Main::insertRecord,
+            2, Main::readRecord,
+            3, Main::displayAllRecords,
+            4, Main::displayIndexFile,
+            5, Main::reorganizeFile,
+            6, Main::deleteRecord,
+            7, Main::updateRecord,
+            8, Main::executeCommandsFromFile,
+            9, Main::exit
     );
 
 }

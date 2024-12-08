@@ -1,16 +1,17 @@
 package main.java.structures.db.file;
 
-import main.java.structures.db.model.Element;
+import main.java.structures.db.model.ElementInfo;
 
 class RecordExistsException extends RuntimeException {
 
-    private PageElementContents<Element> record;
+    private ElementInfo record;
 
-    RecordExistsException(String message, PageElementContents<Element> record) {
+    RecordExistsException(String message, ElementInfo record) {
         super(message);
     }
 
-    PageElementContents<Element> getRecord() {
+    ElementInfo getRecord() {
         return record;
     }
+
 }

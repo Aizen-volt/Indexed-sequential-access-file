@@ -6,85 +6,71 @@ import main.java.structures.db.config.AppConfig;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
 @Getter
-class Page<T> {
+public class Page<T> {
 
-    private static final int PAGE_BLOCK_FACTOR = AppConfig.getInstance().getPageBlockFactor();
+    private final List<T> data;
 
-    private final List<PageElementContents<T>> data;
-
-    Page() {
-        this.data = new ArrayList<>(PAGE_BLOCK_FACTOR);
+    public Page() {
+        this.data = new ArrayList<>();
     }
 
-    void read(RandomAccessFile file, int elementSize, Function<byte[], T> deserializer) {
+    public void read(RandomAccessFile file, int elementSize, Function<byte[], T> deserializer) {
         data.clear();
-        IntStream.range(0, PAGE_BLOCK_FACTOR).forEach(i -> {
+        IntStream.range(0, AppConfig.getInstance().getPageBlockFactor()).forEach(i -> {
             try {
                 byte[] bytes = new byte[elementSize];
                 file.read(bytes);
-                if (bytes[0] != 0) {
-                    data.set(i, new PageElementContents<>(deserializer.apply(bytes), true));
-                }
+                data.add(i, deserializer.apply(bytes));
             } catch (Exception e) {
-                throw new PageAccessException("Error reading page: " + e.getMessage());
+                throw new PageAccessException("Error reading from page: " + e.getMessage());
             }
         });
     }
 
-    void write(RandomAccessFile file, Function<T, byte[]> serializer) {
-        IntStream.range(0, PAGE_BLOCK_FACTOR).forEach(i -> {
+    public void write(RandomAccessFile file, Function<T, byte[]> serializer) {
+        data.forEach(element -> {
             try {
-                file.write(serializer.apply(data.get(i).getData()));
+                file.write(serializer.apply(element));
             } catch (Exception e) {
                 throw new PageAccessException("Error writing to page: " + e.getMessage());
             }
         });
+        data.clear();
     }
 
-    void set(int index, T element) {
+    void set(int index, T data) {
         if (index >= AppConfig.getInstance().getPageBlockFactor() || index < 0) {
             throw new IndexOutOfBoundsException(String.format("Index %d out of bound!", index));
         }
-        if (data.get(index).isOccupied()) {
-            throw new IndexOccupiedException(String.format("Element at index %d already exists!", index));
+        if (this.data.size() <= index) {
+            IntStream.range(this.data.size(), index).forEach(i -> this.data.add(i, null));
         }
-        data.set(index, new PageElementContents<>(
-                element, true
-        ));
+        this.data.set(index, data);
     }
 
-    void remove(int index) {
-        if (index >= AppConfig.getInstance().getPageBlockFactor() || index < 0) {
-            throw new IndexOutOfBoundsException(String.format("Index %d out of bound!", index));
-        }
-        if (!data.get(index).isOccupied()) {
-            throw new EmptyIndexException(String.format("Element at index %d is empty!", index));
-        }
-        data.set(index, data.get(index).empty());
-    }
-
-    boolean isFull() {
-        return data.size() >= AppConfig.getInstance().getPageBlockFactor();
+    public boolean isFull() {
+        return data.size() == AppConfig.getInstance().getPageBlockFactor();
     }
 
     boolean isEmpty() {
         return data.isEmpty();
     }
 
-    void clear() {
-        IntStream.range(0, data.size()).forEach(i ->
-            data.set(i, data.get(i).empty()));
+    public void clear() {
+        data.clear();
+        IntStream.range(0, AppConfig.getInstance().getPageBlockFactor()).forEach(i -> data.add(i, null));
     }
 
     @Override
     public String toString() {
-        return "Page{" +
-                "data=" + data +
-                '}';
+        return "Page {\n" +
+                "data = {\n" + data.stream().map(Objects::toString).reduce((a, b) -> a + ",\n" + b).orElse("") +
+                "}\n";
     }
 
 }
