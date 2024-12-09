@@ -93,24 +93,12 @@ public class IndexedSequentialAccessFile {
                 currentFileType = FileType.MAIN;
                 return Optional.of(mainFile.getBuffer().getData().indexOf(pageContents));
             }
-            if (pageContents.getData().key() >= key) {
-                if (previousRecord == null) {
-                    int nextIndex = mainFile.getBuffer().getData().indexOf(pageContents) + 1;
-                    if (nextIndex < mainFile.getBuffer().getData().size() && mainFile.getBuffer().getData().get(nextIndex).getData().key() == -1) {
-                        mainFile.getBuffer().getData().set(nextIndex, new ElementInfo(new Element(key, -1, -1, -1), true, -1));
-                        mainFile.setCurrentMode(PageMode.WRITE);
-                        return Optional.of(nextIndex);
-                    } else {
-                        insertToOverflow(key, pageContents);
-                    }
-                } else if (previousRecord.getOverflowPointer() == -1) {
-                    if (!forInsert) {
-                        log.warning("Record not found");
-                        return Optional.empty();
-                    }
-                    insertToOverflow(key, previousRecord);
+            if (pageContents.getData().key() < key && previousRecord != null) {
+                if (pageContents.getOverflowPointer() == -1) {
+                    currentFileType = FileType.MAIN;
+                    return Optional.of(mainFile.getBuffer().getData().indexOf(pageContents));
                 }
-                return findRecordInOverflow(key, previousRecord.getOverflowPointer());
+                return findRecordInOverflow(key, pageContents.getOverflowPointer());
             }
             previousRecord = pageContents;
         }
