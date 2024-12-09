@@ -11,6 +11,7 @@ import main.java.structures.db.model.Element;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log
 public class IndexedSequentialAccessFile {
@@ -70,37 +71,52 @@ public class IndexedSequentialAccessFile {
 
     public void readRecord(int key) throws IOException {
         Optional<Integer> recordIndex = findRecord(key, false);
-        recordIndex.ifPresent(integer -> System.out.println(mainFile.getBuffer().getData().get(integer).getData()));
+        if (recordIndex.isEmpty()) {
+            log.warning("Record not found");
+            return;
+        }
+        if (currentFileType == FileType.MAIN) {
+            System.out.println(mainFile.getBuffer().getData().get(recordIndex.orElseThrow()).getData());
+        } else if (currentFileType == FileType.OVERFLOW) {
+            System.out.println(overflowFile.getBuffer().getData().get(recordIndex.orElseThrow()).getData());
+        }
     }
 
     private Optional<Integer> findRecord(int key, boolean forInsert) throws IOException, RecordExistsException {
         int pageNumber = indexFile.search(key);
         if (pageNumber == -1) {
-            log.warning("Page for record not found");
-            if (!forInsert) {
-                return Optional.empty();
-            }
-            mainFile.createPage(mainFile.getBuffer().getData().size());
-            indexFile.addIndex(key, mainFile.getBuffer().getData().size() - 1);
-            return Optional.of(0);
+            return Optional.empty();
         }
 
         mainFile.readPage(pageNumber);
 
         ElementInfo previousRecord = null;
         for (var pageContents : mainFile.getBuffer().getData()) {
-            if (pageContents.getData().key() == -1) {
+            if (!forInsert && pageContents.getData().key() == key) {
                 currentFileType = FileType.MAIN;
                 return Optional.of(mainFile.getBuffer().getData().indexOf(pageContents));
             }
-            if (pageContents.getData().key() < key && previousRecord != null) {
-                if (pageContents.getOverflowPointer() == -1) {
-                    currentFileType = FileType.MAIN;
+            if (forInsert && pageContents.getData().key() == -1) {
+                currentFileType = FileType.MAIN;
+                return Optional.of(mainFile.getBuffer().getData().indexOf(pageContents));
+            }
+            if (previousRecord != null && previousRecord.getData().key() < key && pageContents.getData().key() > key) {
+                if (previousRecord.getOverflowPointer() == -1) {
+                    if (forInsert) {
+                        insertToOverflow(key, previousRecord);
+                    }
                     return Optional.of(mainFile.getBuffer().getData().indexOf(pageContents));
                 }
-                return findRecordInOverflow(key, pageContents.getOverflowPointer());
+                return findRecordInOverflow(key, previousRecord.getOverflowPointer());
             }
             previousRecord = pageContents;
+        }
+        if (forInsert) {
+            // we have to create new page for it, it will be first element of it
+            mainFile.createPage(mainFile.getCurrentPageIndex() + 1);
+            indexFile.addIndex(key, mainFile.getCurrentPageIndex());
+            currentFileType = FileType.MAIN;
+            return Optional.of(0);
         }
         log.warning("Record not found");
         return Optional.empty();
@@ -152,17 +168,17 @@ public class IndexedSequentialAccessFile {
     }
 
     public void deleteRecord(int key) throws IOException {
-        boolean recordDeleted = false;
-        try {
-            findRecord(key, false);
-        } catch (RecordExistsException e) {
-            mainFile.getBuffer().getData().set(mainFile.getBuffer().getData().indexOf(e.getRecord()),
-                    new ElementInfo(new Element(-1, -1, -1, -1), false, e.getRecord().getOverflowPointer()));
-            recordDeleted = true;
-            mainFile.setCurrentMode(PageMode.WRITE);
+        Optional<Integer> recordIndex = findRecord(key, false);
+        if (recordIndex.isEmpty()) {
+            log.warning("Record not found");
+            return;
         }
-        if (!recordDeleted) {
-            log.warning("No record found to delete");
+        if (currentFileType == FileType.MAIN) {
+            mainFile.getBuffer().getData().set(recordIndex.orElseThrow(), new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
+            mainFile.setCurrentMode(PageMode.WRITE);
+        } else if (currentFileType == FileType.OVERFLOW) {
+            overflowFile.getBuffer().getData().set(recordIndex.orElseThrow(), new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
+            overflowFile.setCurrentMode(PageMode.WRITE);
         }
     }
 

@@ -15,7 +15,7 @@ import java.io.RandomAccessFile;
 import java.util.stream.IntStream;
 
 @Log
-public class OverflowFile {
+public class OverflowFile implements AutoCloseable {
 
     private static final int PAGE_SIZE = AppConfig.getInstance().getPageBlockFactor() * ElementInfo.getSize();
 
@@ -54,7 +54,7 @@ public class OverflowFile {
         if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
             writePage(currentPageIndex);
         }
-        buffer.clear();
+        buffer.clear(new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
         currentPageIndex = pageNumber;
         writePage(pageNumber);
         currentMode = PageMode.READ;
@@ -80,7 +80,7 @@ public class OverflowFile {
             currentPageIndex = pageNumber;
         } catch (IOException e) {
             currentPageIndex = -1;
-            buffer.clear();
+            buffer.clear(new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
         }
     }
 
@@ -95,4 +95,11 @@ public class OverflowFile {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
+            writePage(currentPageIndex);
+        }
+        file.close();
+    }
 }

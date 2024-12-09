@@ -15,6 +15,7 @@ public class AppConfig {
     private static final String DEFAULT_PAGE_BLOCK_FACTOR = "128";
     private static final String DEFAULT_ALPHA = "0.5";
     private static final String DEFAULT_BETA = "0.5";
+    private static final String DEFAULT_MIN_KEY = "0";
 
     private final String mainFilePath;
     private final String indexFilePath;
@@ -24,6 +25,8 @@ public class AppConfig {
 
     private final double alpha;
     private final double beta;
+
+    private final int minKey;
 
     private AppConfig() {
         var properties = new Properties();
@@ -44,6 +47,8 @@ public class AppConfig {
 
             alpha = Double.parseDouble(properties.getProperty("alpha", DEFAULT_ALPHA));
             beta = Double.parseDouble(properties.getProperty("beta", DEFAULT_BETA));
+
+            minKey = Integer.parseInt(properties.getProperty("min.key", DEFAULT_MIN_KEY));
 
         } catch (Exception e) {
             throw new NoConfigFileLoadedException("Failed to load application configuration");

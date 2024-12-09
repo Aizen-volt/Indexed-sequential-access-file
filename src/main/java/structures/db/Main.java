@@ -2,6 +2,7 @@ package main.java.structures.db;
 
 import lombok.extern.java.Log;
 import main.java.structures.db.file.IndexedSequentialAccessFile;
+import main.java.structures.db.utils.DriveOperationsCounter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,7 +22,9 @@ public class Main {
             while (true) {
                 displayMenu();
                 int choice = Integer.parseInt(scanner.nextLine());
+                DriveOperationsCounter.resetCounters();
                 menuOptions.get(choice).run();
+                System.out.println("Reads: " + DriveOperationsCounter.getReadCounter() + ", Writes: " + DriveOperationsCounter.getWriteCounter());
             }
         } catch (IOException e) {
             log.severe("Error opening file: " + e.getMessage());
@@ -140,8 +143,10 @@ public class Main {
         try (Scanner fileScanner = new Scanner(new File(fileName))) {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
+                System.out.println("Executing command: " + line);
                 String[] tokens = line.split(" ");
                 String command = tokens[0];
+                DriveOperationsCounter.resetCounters();
                 switch (command) {
                     case "insert":
                         try {
@@ -176,6 +181,7 @@ public class Main {
                     default:
                         log.warning("Invalid command: " + line);
                 }
+                System.out.println("Reads: " + DriveOperationsCounter.getReadCounter() + ", Writes: " + DriveOperationsCounter.getWriteCounter());
             }
         } catch (IOException e) {
             log.severe("Error reading file: " + e.getMessage());

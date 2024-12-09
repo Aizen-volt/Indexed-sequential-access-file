@@ -15,7 +15,7 @@ import java.io.RandomAccessFile;
 import java.util.stream.IntStream;
 
 @Log
-public class MainFile {
+public class MainFile implements AutoCloseable {
 
     private static final int PAGE_SIZE = AppConfig.getInstance().getPageBlockFactor() * ElementInfo.getSize();
 
@@ -24,6 +24,7 @@ public class MainFile {
     @Getter
     private final Page<ElementInfo> buffer;
 
+    @Getter
     private int currentPageIndex = -1;
 
     @Setter
@@ -47,14 +48,18 @@ public class MainFile {
     }
 
     public void createFirstPage() {
-        createPage(0);
+        buffer.clear(new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
+        buffer.getData().set(0, new ElementInfo(new Element(AppConfig.getInstance().getMinKey(), -1, -1, -1), true, -1));
+        currentPageIndex = 0;
+        writePage(0);
+        currentMode = PageMode.READ;
     }
 
     public void createPage(int pageNumber) {
         if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
             writePage(currentPageIndex);
         }
-        buffer.clear();
+        buffer.clear(new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
         currentPageIndex = pageNumber;
         writePage(pageNumber);
         currentMode = PageMode.READ;
@@ -71,7 +76,7 @@ public class MainFile {
             currentPageIndex = pageNumber;
         } catch (IOException e) {
             currentPageIndex = -1;
-            buffer.clear();
+            buffer.clear(new ElementInfo(new Element(-1, -1, -1, -1), false, -1));
         }
     }
 
@@ -86,4 +91,11 @@ public class MainFile {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
+            writePage(currentPageIndex);
+        }
+        file.close();
+    }
 }

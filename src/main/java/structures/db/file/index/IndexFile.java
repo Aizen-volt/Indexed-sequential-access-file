@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 @Log
-public class IndexFile {
+public class IndexFile implements AutoCloseable {
 
     private static final int PAGE_SIZE = AppConfig.getInstance().getPageBlockFactor() * IndexInfo.getSize();
 
@@ -27,6 +27,8 @@ public class IndexFile {
 
     @Setter
     private PageMode currentMode = PageMode.READ;
+
+    private int potentialPageNumber = -1;
 
     public IndexFile(String fileName) throws FileNotFoundException {
         file = new RandomAccessFile(fileName, "rw");
@@ -46,7 +48,11 @@ public class IndexFile {
     }
 
     public void createFirstPage() {
-        createPage(0);
+        buffer.clear(new IndexInfo(-1, -1));
+        buffer.getData().set(0, new IndexInfo(AppConfig.getInstance().getMinKey(), 0));
+        currentPageIndex = 0;
+        writePage(0);
+        currentMode = PageMode.READ;
     }
 
     public void readPage(int pageNumber) {
@@ -82,6 +88,11 @@ public class IndexFile {
 
     private Optional<Integer> binarySearch(int key, int left, int right) {
         if (left > right) {
+            if (potentialPageNumber != -1) {
+                int pageNumber = potentialPageNumber;
+                potentialPageNumber = -1;
+                return Optional.of(pageNumber);
+            }
             return Optional.empty();
         }
 
@@ -89,35 +100,43 @@ public class IndexFile {
         readPage(middle);
 
         List<IndexInfo> contents = buffer.getData();
-        if (contents.isEmpty()) {
-            return Optional.empty();
+        if (contents.stream().allMatch(indexInfo -> indexInfo.getKey() == -1) && potentialPageNumber != -1) {
+            int pageNumber = potentialPageNumber;
+            potentialPageNumber = -1;
+            return Optional.of(pageNumber);
         }
-        for (int i = 0; i < contents.size() - 1; i++) {
+
+        for (int i = 1; i < contents.size(); i++) {
             int currentKey = contents.get(i).getKey();
-            int nextKey = contents.get(i + 1).getKey();
-            if (nextKey == currentKey && nextKey == -1) {
-                return Optional.of(middle);
+            int previousKey = contents.get(i - 1).getKey();
+            if (key >= previousKey && (key < currentKey || currentKey == -1)) {
+                return Optional.of(contents.get(i - 1).getPageNumber());
             }
-            if (key >= currentKey && key < nextKey) {
-                return Optional.of(middle);
+            if (key == currentKey) {
+                return Optional.of(contents.get(i).getPageNumber());
+            }
+            if (i == contents.size() - 1 && key >= currentKey) {
+                potentialPageNumber = contents.get(i).getPageNumber();
             }
         }
 
         int lastKey = contents.getLast().getKey();
-        if (key >= lastKey) {
+        if (key > lastKey) {
             return binarySearch(key, middle + 1, right);
-        } else {
-            return binarySearch(key, left, middle - 1);
         }
+        return binarySearch(key, left, middle - 1);
     }
 
     public void addIndex(int key, int pageNumber) throws IOException {
         currentMode = PageMode.WRITE;
-        buffer.getData().add(new IndexInfo(key, pageNumber));
-        if (buffer.getData().size() == AppConfig.getInstance().getPageBlockFactor()) {
-            int lastPage = (int) Math.ceil((double) file.length() / PAGE_SIZE) - 1;
-            writePage(lastPage);
-            createPage(buffer.getData().size());
+        for (int i = 0; i < buffer.getData().size(); i++) {
+            if (buffer.getData().get(i).getKey() == -1) {
+                buffer.getData().set(i, new IndexInfo(key, pageNumber));
+                if (i == buffer.getData().size() - 1) {
+                    createPage(currentPageIndex + 1);
+                }
+                return;
+            }
         }
     }
 
@@ -125,7 +144,7 @@ public class IndexFile {
         if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
             writePage(currentPageIndex);
         }
-        buffer.clear();
+        buffer.clear(new IndexInfo(-1, -1));
         currentPageIndex = pageNumber;
         writePage(pageNumber);
         currentMode = PageMode.READ;
@@ -138,5 +157,13 @@ public class IndexFile {
             log.severe("Error checking if file is empty: " + e.getMessage());
             return true;
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (!currentMode.equals(PageMode.READ) && currentPageIndex != -1) {
+            writePage(currentPageIndex);
+        }
+        file.close();
     }
 }

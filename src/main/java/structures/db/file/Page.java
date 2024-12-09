@@ -2,6 +2,7 @@ package main.java.structures.db.file;
 
 import lombok.Getter;
 import main.java.structures.db.config.AppConfig;
+import main.java.structures.db.utils.DriveOperationsCounter;
 
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -30,27 +31,18 @@ public class Page<T> {
                 throw new PageAccessException("Error reading from page: " + e.getMessage());
             }
         });
+        DriveOperationsCounter.incrementReadCounter();
     }
 
     public void write(RandomAccessFile file, Function<T, byte[]> serializer) {
         data.forEach(element -> {
             try {
                 file.write(serializer.apply(element));
+                DriveOperationsCounter.incrementWriteCounter();
             } catch (Exception e) {
                 throw new PageAccessException("Error writing to page: " + e.getMessage());
             }
         });
-        data.clear();
-    }
-
-    void set(int index, T data) {
-        if (index >= AppConfig.getInstance().getPageBlockFactor() || index < 0) {
-            throw new IndexOutOfBoundsException(String.format("Index %d out of bound!", index));
-        }
-        if (this.data.size() <= index) {
-            IntStream.range(this.data.size(), index).forEach(i -> this.data.add(i, null));
-        }
-        this.data.set(index, data);
     }
 
     public boolean isFull() {
@@ -61,9 +53,9 @@ public class Page<T> {
         return data.isEmpty();
     }
 
-    public void clear() {
+    public void clear(T mockData) {
         data.clear();
-        IntStream.range(0, AppConfig.getInstance().getPageBlockFactor()).forEach(i -> data.add(i, null));
+        IntStream.range(0, AppConfig.getInstance().getPageBlockFactor()).forEach(i -> data.add(i, mockData));
     }
 
     @Override
